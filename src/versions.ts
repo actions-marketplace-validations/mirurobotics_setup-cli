@@ -2,7 +2,7 @@
  * The latest stable version of the Miru CLI.
  * Update this when releasing a new version.
  */
-export const LATEST_VERSION = 'v0.10.0'
+export const LATEST_VERSION = 'v0.11.0'
 
 /**
  * Sanitize version to strip whitespace and ensure it has a 'v' prefix
@@ -12,7 +12,7 @@ export const sanitize = (version: string): string => {
   if (!version || version.toLowerCase() === 'latest') {
     return 'latest'
   }
-  return `v${version.replace(/^v/, '')}`
+  return `v${version.replace(/^v/i, '')}`
 }
 
 /**
@@ -26,7 +26,8 @@ export const resolve = (version: string): string => {
     latest: LATEST_VERSION,
     v0: LATEST_VERSION,
     'v0.9': 'v0.9.2',
-    'v0.10': LATEST_VERSION
+    'v0.10': 'v0.10.3',
+    'v0.11': LATEST_VERSION
   }
-  return mappings[version] || version
+  return Object.hasOwn(mappings, version) ? mappings[version] : version
 }

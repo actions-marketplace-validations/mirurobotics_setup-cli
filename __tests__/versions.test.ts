@@ -36,6 +36,14 @@ describe('sanitize', () => {
   test('trims whitespace and adds v prefix', () => {
     expect(sanitize('  0.9.0  ')).toBe('v0.9.0')
   })
+
+  test('normalizes uppercase V prefix to lowercase', () => {
+    expect(sanitize('V1.2.3')).toBe('v1.2.3')
+  })
+
+  test('trims whitespace and normalizes uppercase V prefix', () => {
+    expect(sanitize('  V0.9.0  ')).toBe('v0.9.0')
+  })
 })
 
 describe('resolve', () => {
@@ -55,8 +63,12 @@ describe('resolve', () => {
     expect(resolve('v0.9')).toBe('v0.9.2')
   })
 
-  test('resolves v0.10 to LATEST_VERSION', () => {
-    expect(resolve('v0.10')).toBe(LATEST_VERSION)
+  test('resolves v0.10 to v0.10.3 (pinned)', () => {
+    expect(resolve('v0.10')).toBe('v0.10.3')
+  })
+
+  test('resolves v0.11 to LATEST_VERSION', () => {
+    expect(resolve('v0.11')).toBe(LATEST_VERSION)
   })
 
   test('passes through exact version', () => {
@@ -69,5 +81,17 @@ describe('resolve', () => {
 
   test('passes through unknown partial version as-is', () => {
     expect(resolve('v1.2')).toBe('v1.2')
+  })
+
+  test('does not resolve inherited prototype key "toString"', () => {
+    expect(resolve('toString')).toBe('toString')
+  })
+
+  test('does not resolve inherited prototype key "constructor"', () => {
+    expect(resolve('constructor')).toBe('constructor')
+  })
+
+  test('does not resolve inherited prototype key "hasOwnProperty"', () => {
+    expect(resolve('hasOwnProperty')).toBe('hasOwnProperty')
   })
 })
