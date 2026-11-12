@@ -11,7 +11,7 @@ permissions:
 jobs:
   check-main:
     name: Verify tag is on main
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-latest # standard GitHub-hosted runners are free in public repos
     outputs:
       on_main: ${{ steps.check.outputs.on_main }}
     steps:
@@ -34,12 +34,12 @@ jobs:
   release:
     needs: check-main
     if: needs.check-main.outputs.on_main == 'true'
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ubuntu-latest # standard GitHub-hosted runners are free in public repos
     permissions:
       contents: write
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Validate package.json version
         run: |
@@ -86,3 +86,21 @@ jobs:
             --title "$VERSION" \
             --generate-notes \
             ${PRERELEASE_FLAG:+"$PRERELEASE_FLAG"}
+
+  notify:
+    name: 'Notify #deploys'
+    needs: release
+    if: ${{ always() && needs.release.result != 'skipped' }}
+    runs-on: ubuntu-latest # standard GitHub-hosted runners are free in public repos
+    permissions: {}
+    steps:
+      - name: Post to Slack
+        uses: mirurobotics/.github/actions/notify-deploys@f28d0cc569b006bee3e4600f3653f1f3772ec09f # main
+        with:
+          webhook-url: ${{ secrets.SLACK_DEPLOYS_WEBHOOK_URL }}
+          application: setup-cli
+          version: ${{ github.ref_name }}
+          link: >-
+            ${{ format('{0}/{1}/releases/tag/{2}', github.server_url,
+            github.repository, github.ref_name) }}
+          results: ${{ needs.release.result }}
